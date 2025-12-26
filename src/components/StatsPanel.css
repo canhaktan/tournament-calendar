@@ -1,0 +1,543 @@
+/* Main Container for the two-column sidebar */
+.stats-panel-container {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    align-items: stretch;
+    background: transparent;
+}
+
+/* Original Stats Panel (Right side) */
+.stats-panel {
+    width: 300px;
+    background-color: #252525;
+    border-left: 1px solid #333;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 100vh;
+    box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+/* New Details Panel (Left of the Stats Panel) */
+.details-panel {
+    width: 280px;
+    background-color: #1e1e1e;
+    /* Slightly darker/different for contrast */
+    border-left: 1px solid #333;
+    /* Border to separate from Calendar */
+    border-right: 1px solid #333;
+    /* Border to separate from List */
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    box-sizing: border-box;
+    overflow-y: auto;
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+
+    to {
+        width: 280px;
+        opacity: 1;
+    }
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #646cff;
+}
+
+.details-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.close-details-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    line-height: 1;
+}
+
+.close-details-btn:hover {
+    color: #fff;
+}
+
+/* Detail Card Styling (Compact & Clean) */
+.detail-card {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-date {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.type-badge {
+    text-transform: capitalize;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #444;
+    color: #ddd;
+    font-weight: 600;
+}
+
+.type-badge.standart {
+    background-color: #2c3e50;
+    color: #a9cce3;
+}
+
+.type-badge.rapid {
+    background-color: #7d6608;
+    color: #f9e79f;
+}
+
+.type-badge.blitz {
+    background-color: #641e16;
+    color: #f5b7b1;
+}
+
+.detail-title {
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.detail-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.detail-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 2px 8px;
+    min-width: 40px;
+}
+
+.box-val {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.box-lbl {
+    font-size: 0.6rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.link-text {
+    font-size: 0.8rem;
+    color: #646cff;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Common Styles */
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1rem !important;
+    /* Smaller size for longer text */
+    border-bottom: 2px solid #646cff;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+    width: 100%;
+    color: #646cff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: #333;
+    padding: 0.8rem 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: #aaa;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.country-settings h3 {
+    font-size: 1.1rem;
+    color: #ddd;
+    margin-bottom: 1rem;
+}
+
+.country-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.country-item {
+    background: #2a2a2a;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.country-item:hover {
+    background: #333;
+}
+
+.country-item.active {
+    background-color: #383838;
+    border-color: #646cff;
+}
+
+.country-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Layout Fixes for Long Names */
+.country-left-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    /* Takes available space */
+    min-width: 0;
+    /* Crucial for text truncation in flex item */
+    margin-right: 10px;
+    /* Spacing before stats */
+}
+
+/* Mini Country Currency Toggles */
+.country-currency-opts {
+    display: flex;
+    background: #111;
+    border-radius: 4px;
+    padding: 2px;
+    gap: 2px;
+    margin-right: 8px;
+    /* Spacing before Cost */
+}
+
+.country-currency-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 4px;
+    cursor: pointer;
+    border-radius: 2px;
+    line-height: 1;
+}
+
+.country-currency-btn:hover {
+    color: #bbb;
+}
+
+.country-currency-btn.active {
+    background: #444;
+    color: #fff;
+}
+
+/* Removed country-info and country-meta as structure changed */
+
+.flag-icon {
+    width: 44px;
+    /* Requested even larger */
+    height: 30px;
+    object-fit: fill;
+    border-radius: 0;
+    box-shadow: none;
+    flex-shrink: 0;
+}
+
+.country-name {
+    font-size: 1.1rem;
+    color: #ffffff;
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Trash Button in Details */
+.detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.trash-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 2px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.trash-btn:hover {
+    opacity: 1;
+}
+
+.mini-stats-row {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    /* Never shrink stats */
+}
+
+.mini-stat-card {
+    background: transparent;
+    /* No background as per screenshot look, just clear numbers */
+    /* Or if box desired: background: #1a1a1a; */
+    border: none;
+    padding: 0 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 35px;
+}
+
+.mini-val {
+    font-size: 1.1rem;
+    /* Larger number */
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.mini-lbl {
+    font-size: 0.5rem;
+    color: #666;
+    /* Subtle label */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.color-picker {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    /* Square */
+    cursor: pointer;
+    background: none;
+    flex-shrink: 0;
+}
+
+.empty-msg {
+    color: #666;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.detail-link {
+    color: #646cff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 2px 6px;
+    background: rgba(100, 108, 255, 0.1);
+    border-radius: 4px;
+}
+
+
+/* Financial Overview */
+.financial-overview {
+    background: #1e1e1e;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center content */
+}
+
+.financial-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.financial-header h3 {
+    margin: 0;
+    font-size: 14px;
+    /* Slightly smaller */
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.currency-toggles {
+    display: flex;
+    gap: 4px;
+    background: #2a2a2a;
+    padding: 2px;
+    border-radius: 6px;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.currency-toggle {
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.currency-toggle.active {
+    background: #4a4a4a;
+    color: #fff;
+    font-weight: 600;
+}
+
+.budget-total-card {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(100, 108, 255, 0.12), rgba(100, 108, 255, 0.04));
+    border-radius: 12px;
+    border: 1px solid rgba(100, 108, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+.budget-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #646cff;
+    margin-bottom: 2px;
+    text-shadow: 0 2px 8px rgba(100, 108, 255, 0.3);
+}
+
+.budget-label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.quarterly-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+    width: 100%;
+}
+
+.quarter-card {
+    background: #252525;
+    padding: 8px;
+    /* Slightly tighter */
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #333;
+}
+
+.q-label {
+    display: block;
+    font-size: 10px;
+    /* Smaller label */
+    color: #666;
+    margin-bottom: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.q-value {
+    display: block;
+    font-size: 12px;
+    color: #eee;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.budget-box {
+    border-color: rgba(46, 204, 113, 0.3) !important;
+    background: rgba(46, 204, 113, 0.05) !important;
+}
+
+.budget-box .box-val {
+    color: #2ecc71 !important;
+}
+
+.budget-box .box-lbl {
+    color: rgba(46, 204, 113, 0.7) !important;
+}

@@ -1,0 +1,401 @@
+/* App Layout */
+.app-layout {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Main Container */
+.year-view-container {
+    flex-grow: 1;
+    padding: 0.5rem 1rem;
+    background-color: #1a1a1a;
+    color: #fff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent scrolling for single screen feel */
+}
+
+/* Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.calendar-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Year Selector */
+.header-year-selector {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.year-btn {
+    background: #333;
+    border: 1px solid #444;
+    color: #888;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.year-btn:hover {
+    background: #444;
+    color: #fff;
+}
+
+.year-btn.active {
+    background: #646cff;
+    color: white;
+    border-color: #646cff;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.legend .dot {
+    width: 8px;
+    height: 8px;
+    background-color: #646cff;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Flat Grid Layout (Row-first) */
+.year-grid-flat {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    /* 4 months per row */
+    grid-template-rows: repeat(3, 1fr);
+    /* 3 rows */
+    gap: 1rem;
+    flex-grow: 1;
+    min-height: 0;
+    /* Important for grid to shrink inside flex container */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .year-view-container {
+        height: auto;
+        overflow: auto;
+    }
+
+    .year-grid-flat {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .year-grid-flat {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+}
+
+/* Month Grid - Compact styles */
+.month-grid-container {
+    background: #252525;
+    padding: 0.75rem;
+    /* Increased padding slightly for frame */
+    border-radius: 8px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Fill the grid cell */
+}
+
+.month-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #eee;
+    text-align: left;
+}
+
+.days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #333;
+}
+
+.day-name {
+    font-size: 0.8rem;
+    color: #888;
+    text-align: center;
+    font-weight: 600;
+    padding-bottom: 2px;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: 1fr;
+    /* Force all rows (weeks) to share height equally */
+    gap: 4px;
+    /* Slightly larger gap */
+    flex-grow: 1;
+    /* evenly distribute height */
+    height: 100%;
+    /* Take full height of container */
+}
+
+/* Day Cell Compact */
+.day-cell,
+.day-cell-placeholder {
+    width: 100%;
+    height: 100%;
+    /* Fill row height */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    /* Larger font */
+    border-radius: 4px;
+    position: relative;
+    cursor: default;
+    background-color: #2a2a2a;
+    /* Subtle background for all cells to define area */
+    border: 1px solid transparent;
+}
+
+.day-cell-placeholder {
+    background-color: transparent;
+}
+
+.day-cell.selected-start,
+.day-cell.selected-end {
+    background-color: #646cff !important;
+    color: white !important;
+    z-index: 10;
+    box-shadow: 0 0 8px rgba(100, 108, 255, 0.6);
+}
+
+.day-cell.selected-range {
+    background-color: rgba(100, 108, 255, 0.3) !important;
+    color: white;
+}
+
+.day-cell:hover {
+    background-color: #333;
+    border-color: #555;
+    transform: scale(1.05);
+    /* Micro-interaction */
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.day-cell.has-event {
+    color: white;
+    background-color: rgba(100, 108, 255, 0.2);
+    border: 1px solid rgba(100, 108, 255, 0.5);
+}
+
+.event-indicator {
+    margin-top: 2px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #646cff;
+    box-shadow: 0 0 4px #646cff;
+}
+
+.day-cell.selected-start .event-indicator,
+.day-cell.selected-end .event-indicator {
+    background-color: white;
+    box-shadow: 0 0 4px white;
+}
+
+/* Header Actions */
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.add-btn {
+    background: #646cff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.add-btn:hover {
+    background: #535bf2;
+}
+
+.selection-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.selection-hint {
+    color: #4caf50;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+.cancel-btn {
+    background: transparent;
+    border: 1px solid #666;
+    color: #ccc;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+    background: #333;
+    color: white;
+}
+
+/* Floating Confirm Button */
+.floating-confirm-container {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.confirm-btn {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    transition: transform 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.confirm-btn:hover {
+    background: #43a047;
+    transform: scale(1.05);
+}
+
+.confirm-btn.delete-confirm {
+    background: #e74c3c;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+}
+
+.confirm-btn.delete-confirm:hover {
+    background: #c0392b;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.delete-mode-btn {
+    background: #333;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delete-mode-btn:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.selection-hint.delete-hint {
+    color: #e74c3c;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+
+@keyframes pulse {
+    0% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes siren-blink {
+    0% {
+        box-shadow: 0 0 5px rgba(231, 76, 60, 0.4);
+        background-color: rgba(231, 76, 60, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(231, 76, 60, 0.9);
+        background-color: rgba(231, 76, 60, 0.5);
+        z-index: 100;
+        transform: scale(1.1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(231, 76, 60, 0.4);
+        background-color: rgba(231, 76, 60, 0.2);
+    }
+}
+
+.day-cell.siren-effect {
+    animation: siren-blink 0.8s infinite ease-in-out;
+    border: 1px solid #e74c3c !important;
+}
+
+/* Ensure siren overrides other styles */
+.day-cell.siren-effect .event-indicator {
+    background-color: #fff;
+    box-shadow: 0 0 4px #fff;
+}

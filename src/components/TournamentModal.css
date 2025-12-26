@@ -1,0 +1,513 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: #252525;
+    padding: 1.5rem;
+    /* Reduced padding from 2rem to save space */
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    /* Ensure it fits on screen */
+    overflow-y: auto;
+    /* Scroll if too tall */
+    border: 1px solid #444;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    color: #fff;
+}
+
+.modal-dates {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #333;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    color: #ccc;
+    font-weight: 500;
+}
+
+.modal-dates .arrow {
+    color: #666;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    border-color: #646cff;
+    outline: none;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Segmented Control */
+.segmented-control {
+    display: flex;
+    background: #444;
+    padding: 4px;
+    border-radius: 6px;
+    gap: 4px;
+}
+
+.segmented-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    padding: 6px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.segmented-btn:hover {
+    color: white;
+}
+
+.segmented-btn.active {
+    background: #646cff;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Detailed Budget Styles */
+.detailed-budget-section {
+    margin-top: 0.5rem;
+    padding: 0.8rem;
+    background: #202020;
+    border-radius: 8px;
+    border: 1px solid #333;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Toggle Button - More friendly/prominent */
+.detailed-budget-toggle {
+    background: #2a2a2a;
+    color: #ccc;
+    border: 1px solid #444;
+    padding: 4px 12px;
+    border-radius: 12px;
+    /* Compact Pill */
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-left: auto;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.detailed-budget-toggle:hover {
+    background: #333;
+    color: white;
+    border-color: #666;
+}
+
+.detailed-budget-toggle.active {
+    background: rgba(100, 108, 255, 0.15);
+    color: #8fa0ff;
+    border-color: rgba(100, 108, 255, 0.4);
+}
+
+/* Expense Rows - Fixed & Cleaner & Compact */
+.expense-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: center;
+    background: #252525;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #333;
+}
+
+.expense-row:last-child {
+    margin-bottom: 0;
+}
+
+.expense-label {
+    flex: 2;
+    font-size: 0.8rem;
+    /* Slightly smaller for long text */
+    color: #e0e0e0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.1;
+    /* Handle wrapping gracefully */
+}
+
+/* Icon placeholder or bullet */
+.expense-label::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #646cff;
+}
+
+.expense-amount-input {
+    flex: 1;
+    background-color: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: white;
+    padding: 4px 8px;
+    /* Smaller padding */
+    font-size: 0.9rem;
+    min-width: 80px;
+    text-align: right;
+    transition: border-color 0.2s;
+    height: 28px;
+    /* Fixed height for consistency */
+}
+
+.expense-amount-input:focus {
+    border-color: #646cff;
+    outline: none;
+}
+
+/* Mini Segmented Control in Row */
+.expense-segmented-control {
+    display: flex;
+    background: #333;
+    padding: 2px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    height: 28px;
+    align-items: center;
+}
+
+.expense-segmented-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 0.65rem;
+    /* Very small but readable */
+    font-weight: 600;
+    padding: 0 6px;
+    height: 100%;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    line-height: 24px;
+}
+
+.expense-segmented-btn:hover {
+    color: #ccc;
+}
+
+.expense-segmented-btn.active {
+    background: #555;
+    color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Total Summary Area - Compact Row Layout */
+.budget-summary {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #151515;
+    border-radius: 8px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: row;
+    /* Horizontal layout */
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle gradient background for summary */
+.budget-summary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(100, 108, 255, 0.05), transparent);
+    pointer-events: none;
+}
+
+/* Currency Toggles for Summary */
+.summary-currency-toggles {
+    display: flex;
+    background: #252525;
+    padding: 2px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    gap: 2px;
+}
+
+.summary-currency-btn {
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.summary-currency-btn:hover {
+    color: #999;
+}
+
+.summary-currency-btn.active {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Big Total Display - Compact */
+.summary-total-display {
+    text-align: center;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.summary-total-value {
+    font-size: 1.4rem;
+    /* Smaller than 2.5rem */
+    font-weight: 700;
+    color: #646cff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 8px rgba(100, 108, 255, 0.2);
+}
+
+.summary-total-label {
+    font-size: 0.65rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* Use Total Button */
+.use-total-btn {
+    background: white;
+    color: black;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: transform 0.2s;
+    white-space: nowrap;
+}
+
+.use-total-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Autocomplete */
+.autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.suggestions-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 0 0 4px 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #ddd;
+    border-bottom: 1px solid #444;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: #444;
+    color: white;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    /* Stack vertically for better centering */
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.8rem;
+    width: 100%;
+    justify-content: flex-end;
+    /* Keep save/cancel on the right */
+}
+
+/* Big Budget Card - matching StatsPanel */
+.modal-footer-budget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+    /* Slightly wider for better centering feel */
+}
+
+.budget-total-card {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(100, 108, 255, 0.12), rgba(100, 108, 255, 0.04));
+    border-radius: 12px;
+    border: 1px solid rgba(100, 108, 255, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.budget-value {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #646cff;
+    margin-bottom: 2px;
+    text-shadow: 0 2px 10px rgba(100, 108, 255, 0.3);
+}
+
+.budget-label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.btn-cancel,
+.btn-save,
+.btn-delete {
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background: #333;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+.btn-cancel:hover {
+    background: #444;
+}
+
+.btn-save {
+    background: #646cff;
+    color: #fff;
+    border: none;
+}
+
+.btn-save:hover {
+    background: #535bf2;
+}
+
+.btn-save:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
