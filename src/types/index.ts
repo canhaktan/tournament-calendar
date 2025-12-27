@@ -17,6 +17,8 @@ export type Tournament = {
     budget?: number;
     currency?: 'TRY' | 'USD' | 'EUR';
     expenses?: ExpenseItem[];
+    budgetSource?: 'basic' | 'detailed';
+    summaryCurrency?: 'TRY' | 'USD' | 'EUR';
 };
 
 export type CalendarDay = {

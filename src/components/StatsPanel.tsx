@@ -76,17 +76,32 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         const countryStats: Record<string, { count: number, rounds: number, totalBudget: number, list: Tournament[] }> = {};
 
         tournaments.forEach(t => {
+            // Determine effective budget and currency based on source
+            const isDetailed = t.budgetSource === 'detailed';
+            let effectiveBudget = 0;
+            let effectiveCurrency: Currency = 'TRY';
+
+            if (isDetailed && t.expenses) {
+                const sumCurrency = t.summaryCurrency || 'EUR';
+                effectiveBudget = t.expenses.reduce((sum, e) =>
+                    sum + convertCurrency(Number(e.amount) || 0, e.currency, sumCurrency), 0);
+                effectiveCurrency = sumCurrency;
+            } else if (t.budget) {
+                effectiveBudget = t.budget;
+                effectiveCurrency = t.currency || 'TRY';
+            }
+
             // Financial Calculation
             let amountForGlobal = 0;
             let amountForCountry = 0;
 
-            if (t.budget && t.currency) {
+            if (effectiveBudget > 0) {
                 // Global stats depend on displayCurrency
-                amountForGlobal = convertCurrency(t.budget, t.currency, displayCurrency);
+                amountForGlobal = convertCurrency(effectiveBudget, effectiveCurrency, displayCurrency);
                 totalBudget += amountForGlobal;
 
                 // Country stats always stored in TRY (Base) to allow independent conversion later
-                amountForCountry = convertCurrency(t.budget, t.currency, 'TRY');
+                amountForCountry = convertCurrency(effectiveBudget, effectiveCurrency, 'TRY');
 
                 const month = new Date(t.startDate).getMonth(); // 0-11
                 const quarter = Math.floor(month / 3) + 1; // 1-4
@@ -174,14 +189,32 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                                         <span className="box-val">{t.rounds}</span>
                                         <span className="box-lbl">Rounds</span>
                                     </div>
-                                    {t.budget && t.currency && (
-                                        <div className="detail-box budget-box">
-                                            <span className="box-val">
-                                                {formatCurrency(t.budget, t.currency)}
-                                            </span>
-                                            <span className="box-lbl">Budget</span>
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const isDetailed = t.budgetSource === 'detailed';
+                                        let displayBudget = 0;
+                                        let displayCurrency: Currency = 'TRY';
+
+                                        if (isDetailed && t.expenses) {
+                                            displayCurrency = t.summaryCurrency || 'EUR';
+                                            displayBudget = t.expenses.reduce((sum, e) =>
+                                                sum + convertCurrency(Number(e.amount) || 0, e.currency, displayCurrency), 0);
+                                        } else if (t.budget) {
+                                            displayBudget = t.budget;
+                                            displayCurrency = t.currency || 'TRY';
+                                        }
+
+                                        if (displayBudget > 0) {
+                                            return (
+                                                <div className="detail-box budget-box">
+                                                    <span className="box-val">
+                                                        {formatCurrency(displayBudget, displayCurrency)}
+                                                    </span>
+                                                    <span className="box-lbl">Budget ({isDetailed ? 'Det' : 'Bas'})</span>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
                                     {t.link && (
                                         <a href={t.link} target="_blank" rel="noreferrer" className="link-text">
                                             Visit ↗

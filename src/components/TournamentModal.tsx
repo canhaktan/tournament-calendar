@@ -27,9 +27,11 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Detailed Budget State
-    const [showDetailedBudget, setShowDetailedBudget] = useState(false);
     const [expenses, setExpenses] = useState<ExpenseItem[]>(initialTournament?.expenses || []);
-    const [summaryCurrency, setSummaryCurrency] = useState<Currency>('EUR');
+    const [summaryCurrency, setSummaryCurrency] = useState<Currency>(initialTournament?.summaryCurrency || initialTournament?.currency || 'EUR');
+    const [budgetSource, setBudgetSource] = useState<'basic' | 'detailed'>(
+        initialTournament?.budgetSource || (initialTournament?.expenses && initialTournament.expenses.some(e => Number(e.amount) > 0) ? 'detailed' : 'basic')
+    );
 
     // Autocomplete state
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -115,11 +117,6 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
         return sum + convertCurrency(Number(item.amount) || 0, item.currency, summaryCurrency);
     }, 0);
 
-    const handleUseTotal = () => {
-        setBudget(Math.round(totalExpense));
-        setCurrency(summaryCurrency);
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title) return;
@@ -136,7 +133,9 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                 type,
                 budget: budget ? Number(budget) : undefined,
                 currency,
-                expenses: expenses.length > 0 ? expenses : undefined
+                expenses: expenses.length > 0 ? expenses : undefined,
+                budgetSource,
+                summaryCurrency
             };
 
             if (initialTournament) {
@@ -155,8 +154,9 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay">
             <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close">×</button>
                 <h2 className="modal-title">{initialTournament ? 'Edit Tournament' : 'Add New Tournament'}</h2>
                 <div className="date-display">
                     {formatDateDisplay(startDate)} <span className="arrow">→</span> {formatDateDisplay(endDate)}
@@ -215,18 +215,27 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                     </div>
 
                     <div className="form-group">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <label style={{ margin: 0 }}>Budget</label>
-                            <button
-                                type="button"
-                                className={`detailed-budget-toggle ${showDetailedBudget ? 'active' : ''}`}
-                                onClick={() => setShowDetailedBudget(!showDetailedBudget)}
-                            >
-                                {showDetailedBudget ? 'Simple Mode' : 'Detailed Budget Plan'}
-                            </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                            <label style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>Which budget plan to use?</label>
+                            <div className="segmented-control source-selector">
+                                <button
+                                    type="button"
+                                    className={`segmented-btn ${budgetSource === 'basic' ? 'active' : ''}`}
+                                    onClick={() => setBudgetSource('basic')}
+                                >
+                                    Basic Budget
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`segmented-btn ${budgetSource === 'detailed' ? 'active' : ''}`}
+                                    onClick={() => setBudgetSource('detailed')}
+                                >
+                                    Detailed Breakdown
+                                </button>
+                            </div>
                         </div>
 
-                        {!showDetailedBudget && (
+                        {budgetSource === 'basic' && (
                             <div className="budget-input-row" style={{ display: 'flex', gap: '8px' }}>
                                 <input
                                     type="number"
@@ -252,7 +261,7 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                         )}
                     </div>
 
-                    {showDetailedBudget && (
+                    {budgetSource === 'detailed' && (
                         <div className="detailed-budget-section">
                             {expenses.map((expense) => (
                                 <div key={expense.id} className="expense-row">
@@ -299,15 +308,8 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                                     <div className="summary-total-value">
                                         {formatCurrency(totalExpense, summaryCurrency)}
                                     </div>
-                                    <div className="summary-total-label">TOTAL ESTIMATED BUDGET</div>
+                                    <div className="summary-total-label">TOTAL (CALCULATED)</div>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="use-total-btn"
-                                    onClick={handleUseTotal}
-                                >
-                                    Use Estimate ⬆
-                                </button>
                             </div>
                         </div>
                     )}
@@ -357,9 +359,16 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                             <div className="modal-footer-budget">
                                 <div className="budget-total-card">
                                     <span className="budget-value">
-                                        {formatCurrency(convertCurrency(Number(budget), currency, summaryCurrency), summaryCurrency)}
+                                        {formatCurrency(
+                                            budgetSource === 'basic'
+                                                ? convertCurrency(Number(budget) || 0, currency, summaryCurrency)
+                                                : totalExpense,
+                                            summaryCurrency
+                                        )}
                                     </span>
-                                    <span className="budget-label">TOTAL ESTIMATED BUDGET</span>
+                                    <span className="budget-label">
+                                        OFFICIAL BUDGET ({budgetSource.toUpperCase()})
+                                    </span>
                                 </div>
                                 <div className="summary-currency-toggles" style={{ marginTop: '8px', justifyContent: 'center' }}>
                                     {(['TRY', 'USD', 'EUR'] as const).map(c => (
