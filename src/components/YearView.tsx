@@ -15,6 +15,9 @@ const YearView: React.FC = () => {
     const [countryColors, setCountryColors] = useState<Record<string, string>>({});
     const [activeCountry, setActiveCountry] = useState<string | null>(null);
 
+    // Filter Mode State (Lifted from StatsPanel)
+    const [filterMode, setFilterMode] = useState<'all' | 'confirmed'>('all');
+
     // Selection Mode State (view | add | delete)
     const [mode, setMode] = useState<'view' | 'add' | 'delete'>('view');
     const [selectionStart, setSelectionStart] = useState<string | null>(null);
@@ -145,8 +148,10 @@ const YearView: React.FC = () => {
     // Generate array of 0..11 for months
     const months = Array.from({ length: 12 }, (_, i) => i);
 
-    // No filtering for calendar, always show all
-    const visibleTournaments = tournaments;
+    // Calendar Filtering Logic
+    const visibleTournaments = filterMode === 'confirmed'
+        ? tournaments.filter(t => t.isGoing)
+        : tournaments;
 
     return (
         <div className="app-layout">
@@ -243,6 +248,8 @@ const YearView: React.FC = () => {
                 selectedYear={selectedYear}
                 onTournamentChange={handleTournamentChange}
                 onTournamentClick={handleSirenToggle}
+                filterMode={filterMode}
+                onFilterChange={setFilterMode}
             />
         </div>
     );

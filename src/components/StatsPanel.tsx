@@ -15,7 +15,8 @@ interface StatsPanelProps {
     selectedYear: number;
     onTournamentChange: () => void;
     onTournamentClick: (id: string | null) => void;
-
+    filterMode: 'all' | 'confirmed';
+    onFilterChange: (mode: 'all' | 'confirmed') => void;
 }
 
 const DEFAULT_COLOR = '#646cff';
@@ -40,13 +41,15 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     onCountryClick,
     selectedYear,
     onTournamentChange,
-    onTournamentClick
+    onTournamentClick,
+    filterMode,
+    onFilterChange
 }) => {
-    console.log('StatsPanel Props:', { activeCountry });
+    // console.log('StatsPanel Props:', { filterMode });
     const [displayCurrency, setDisplayCurrency] = React.useState<Currency>('TRY');
     const [countryCurrencies, setCountryCurrencies] = React.useState<Record<string, Currency>>({});
     const [refreshKey, setRefreshKey] = React.useState(0);
-    const [filterMode, setFilterMode] = React.useState<'all' | 'confirmed'>('all');
+    // Local filter state removed
 
     React.useEffect(() => {
         // Auto-fetch rates if older than 24h
@@ -243,13 +246,13 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                     <div className="filter-segmented-control">
                         <button
                             className={`filter-btn ${filterMode === 'all' ? 'active' : ''}`}
-                            onClick={() => setFilterMode('all')}
+                            onClick={() => onFilterChange('all')}
                         >
                             ALL
                         </button>
                         <button
                             className={`filter-btn ${filterMode === 'confirmed' ? 'active' : ''}`}
-                            onClick={() => setFilterMode('confirmed')}
+                            onClick={() => onFilterChange('confirmed')}
                         >
                             CONFIRMED
                         </button>
