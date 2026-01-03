@@ -141,6 +141,12 @@ const YearView: React.FC = () => {
         setSelectedDeleteId(null);
     };
 
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectionStart(null);
+        setSelectionEnd(null);
+    };
+
     if (loading) {
         return <div className="loading-state">Loading calendar...</div>;
     }
@@ -233,7 +239,7 @@ const YearView: React.FC = () => {
                             t => t.startDate === selectionStart && t.endDate === selectionEnd
                         )}
                         existingTournaments={tournaments}
-                        onClose={() => setIsModalOpen(false)}
+                        onClose={handleModalClose}
                         onSave={handleModalSave}
                     />
                 )}
