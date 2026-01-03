@@ -227,6 +227,7 @@ const YearView: React.FC = () => {
                         initialTournament={tournaments.find(
                             t => t.startDate === selectionStart && t.endDate === selectionEnd
                         )}
+                        existingTournaments={tournaments}
                         onClose={() => setIsModalOpen(false)}
                         onSave={handleModalSave}
                     />

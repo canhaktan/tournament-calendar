@@ -542,3 +542,42 @@
 .budget-box .box-lbl {
     color: rgba(46, 204, 113, 0.7) !important;
 }
+
+/* Filter Toggle */
+.filter-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 20;
+}
+
+.filter-segmented-control {
+    display: flex;
+    background: #1a1a1a;
+    padding: 3px;
+    border-radius: 6px;
+    border: 1px solid #333;
+}
+
+.filter-btn {
+    background: transparent;
+    border: none;
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    color: #bbb;
+}
+
+.filter-btn.active {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

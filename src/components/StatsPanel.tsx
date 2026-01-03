@@ -15,6 +15,7 @@ interface StatsPanelProps {
     selectedYear: number;
     onTournamentChange: () => void;
     onTournamentClick: (id: string | null) => void;
+
 }
 
 const DEFAULT_COLOR = '#646cff';
@@ -41,9 +42,11 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     onTournamentChange,
     onTournamentClick
 }) => {
+    console.log('StatsPanel Props:', { activeCountry });
     const [displayCurrency, setDisplayCurrency] = React.useState<Currency>('TRY');
     const [countryCurrencies, setCountryCurrencies] = React.useState<Record<string, Currency>>({});
-    const [refreshKey, setRefreshKey] = React.useState(0); // For forcing re-render after currency update
+    const [refreshKey, setRefreshKey] = React.useState(0);
+    const [filterMode, setFilterMode] = React.useState<'all' | 'confirmed'>('all');
 
     React.useEffect(() => {
         // Auto-fetch rates if older than 24h
@@ -65,8 +68,13 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
 
 
     const stats = useMemo(() => {
-        const totalTournaments = tournaments.length;
-        const totalRounds = tournaments.reduce((acc, t) => acc + (t.rounds || 0), 0);
+        // Apply Filter
+        const filteredTournaments = filterMode === 'confirmed'
+            ? tournaments.filter(t => t.isGoing)
+            : tournaments;
+
+        const totalTournaments = filteredTournaments.length;
+        const totalRounds = filteredTournaments.reduce((acc, t) => acc + (t.rounds || 0), 0);
 
         // Financial Stats
         let totalBudget = 0;
@@ -75,7 +83,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         // Group by Country
         const countryStats: Record<string, { count: number, rounds: number, totalBudget: number, list: Tournament[] }> = {};
 
-        tournaments.forEach(t => {
+        filteredTournaments.forEach(t => {
             // Determine effective budget and currency based on source
             const isDetailed = t.budgetSource === 'detailed';
             let effectiveBudget = 0;
@@ -135,7 +143,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             countries,
             countryStats
         };
-    }, [tournaments, displayCurrency, refreshKey]);
+    }, [tournaments, displayCurrency, refreshKey, filterMode]);
 
     const getFlagUrl = (countryName: string) => {
         const c = COUNTRIES.find(c => c.name.toLowerCase() === countryName.toLowerCase());
@@ -230,6 +238,23 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             {/* Main Stats Panel */}
             <div className="stats-panel">
                 <h2 className="panel-title">TOURNAMENT SCHEDULE FOR YEAR {selectedYear}</h2>
+
+                <div className="filter-toggle-container">
+                    <div className="filter-segmented-control">
+                        <button
+                            className={`filter-btn ${filterMode === 'all' ? 'active' : ''}`}
+                            onClick={() => setFilterMode('all')}
+                        >
+                            ALL
+                        </button>
+                        <button
+                            className={`filter-btn ${filterMode === 'confirmed' ? 'active' : ''}`}
+                            onClick={() => setFilterMode('confirmed')}
+                        >
+                            CONFIRMED
+                        </button>
+                    </div>
+                </div>
 
                 <div className="stats-grid">
                     <div className="stat-card">
