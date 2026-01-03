@@ -4,7 +4,7 @@ import { COUNTRIES } from '../data/countries';
 import { formatDateDisplay } from '../config/locale';
 import './StatsPanel.css';
 import { deleteTournament } from '../services/tournamentService';
-import { convertCurrency, formatCurrency, type Currency, fetchExchangeRates, getRateInfo } from '../services/currencyService';
+import { convertCurrency, formatCurrency, type Currency, fetchExchangeRates } from '../services/currencyService';
 
 interface StatsPanelProps {
     tournaments: Tournament[];
@@ -45,6 +45,15 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     const [countryCurrencies, setCountryCurrencies] = React.useState<Record<string, Currency>>({});
     const [refreshKey, setRefreshKey] = React.useState(0); // For forcing re-render after currency update
 
+    React.useEffect(() => {
+        // Auto-fetch rates if older than 24h
+        fetchExchangeRates(true).then((updated) => {
+            if (updated) {
+                setRefreshKey(prev => prev + 1);
+            }
+        });
+    }, []);
+
     const handleCountryCurrencyChange = (country: string, currency: Currency) => {
         setCountryCurrencies(prev => ({
             ...prev,
@@ -52,17 +61,8 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         }));
     };
 
-    const handleRefreshRates = async () => {
-        if (window.confirm('Update currency rates from live API?')) {
-            const success = await fetchExchangeRates();
-            if (success) {
-                alert('Currency rates updated successfully!');
-                setRefreshKey(prev => prev + 1); // Force re-calculation
-            } else {
-                alert('Failed to update rates. Check console / API Key.');
-            }
-        }
-    };
+    // Removed handleRefreshRates as manual update is disabled
+
 
     const stats = useMemo(() => {
         const totalTournaments = tournaments.length;
@@ -249,32 +249,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 {/* Financial Overview */}
                 <div className="financial-overview">
                     <div className="financial-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h3>Financial Overview</h3>
-                            <button
-                                onClick={handleRefreshRates}
-                                style={{
-                                    background: 'none',
-                                    border: '1px solid #444',
-                                    color: '#888',
-                                    cursor: 'pointer',
-                                    padding: '2px 6px',
-                                    fontSize: '0.8rem',
-                                    borderRadius: '4px'
-                                }}
-                                title="Update Live Rates"
-                            >
-                                ↻
-                            </button>
-                        </div>
-                        <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '4px', textAlign: 'right' }}>
-                            {(() => {
-                                const info = getRateInfo();
-                                if (info.source === 'Default') return 'Using Default Rates';
-                                const date = new Date(info.lastUpdated);
-                                return `Live: ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-                            })()}
-                        </div>
+                        <h3>Financial Overview</h3>
                     </div>
 
                     <div className="budget-total-card">
@@ -307,7 +282,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 </div>
 
                 <div className="country-settings">
-                    <h3>Country Colors</h3>
+                    <h3>Countries</h3>
                     {stats.countries.length === 0 && <p className="empty-msg">No countries yet.</p>}
 
                     <div className="country-list">
@@ -333,7 +308,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                                             />
 
                                             {flag && <img src={flag} alt={country} className="flag-icon" />}
-                                            <span className="country-name">{country}</span>
                                         </div>
 
                                         <div className="mini-stats-row">
@@ -355,7 +329,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                                             </div>
                                             <div className="mini-stat-card">
                                                 <span className="mini-val">{data.count}</span>
-                                                <span className="mini-lbl">Trn</span>
+                                                <span className="mini-lbl">Tournaments</span>
                                             </div>
                                         </div>
                                     </div>

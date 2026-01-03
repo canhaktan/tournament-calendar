@@ -9,7 +9,7 @@ import './YearView.css';
 const YearView: React.FC = () => {
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedYear, setSelectedYear] = useState(2025);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     // Stats & Color State
     const [countryColors, setCountryColors] = useState<Record<string, string>>({});
