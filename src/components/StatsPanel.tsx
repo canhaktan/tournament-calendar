@@ -4,7 +4,8 @@ import { COUNTRIES } from '../data/countries';
 import { formatDateDisplay } from '../config/locale';
 import './StatsPanel.css';
 import { deleteTournament } from '../services/tournamentService';
-import { convertCurrency, formatCurrency, type Currency, fetchExchangeRates, getRateInfo } from '../services/currencyService';
+import { convertCurrency, formatCurrency, type Currency, fetchExchangeRates } from '../services/currencyService';
+import { exportTournamentsToExcel } from '../services/excelService';
 
 interface StatsPanelProps {
     tournaments: Tournament[];
@@ -15,6 +16,8 @@ interface StatsPanelProps {
     selectedYear: number;
     onTournamentChange: () => void;
     onTournamentClick: (id: string | null) => void;
+    filterMode: 'all' | 'confirmed';
+    onFilterChange: (mode: 'all' | 'confirmed') => void;
 }
 
 const DEFAULT_COLOR = '#646cff';
@@ -39,11 +42,24 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     onCountryClick,
     selectedYear,
     onTournamentChange,
-    onTournamentClick
+    onTournamentClick,
+    filterMode,
+    onFilterChange
 }) => {
+    // console.log('StatsPanel Props:', { filterMode });
     const [displayCurrency, setDisplayCurrency] = React.useState<Currency>('TRY');
     const [countryCurrencies, setCountryCurrencies] = React.useState<Record<string, Currency>>({});
-    const [refreshKey, setRefreshKey] = React.useState(0); // For forcing re-render after currency update
+    const [refreshKey, setRefreshKey] = React.useState(0);
+    // Local filter state removed
+
+    React.useEffect(() => {
+        // Auto-fetch rates if older than 24h
+        fetchExchangeRates(true).then((updated) => {
+            if (updated) {
+                setRefreshKey(prev => prev + 1);
+            }
+        });
+    }, []);
 
     const handleCountryCurrencyChange = (country: string, currency: Currency) => {
         setCountryCurrencies(prev => ({
@@ -52,21 +68,17 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         }));
     };
 
-    const handleRefreshRates = async () => {
-        if (window.confirm('Update currency rates from live API?')) {
-            const success = await fetchExchangeRates();
-            if (success) {
-                alert('Currency rates updated successfully!');
-                setRefreshKey(prev => prev + 1); // Force re-calculation
-            } else {
-                alert('Failed to update rates. Check console / API Key.');
-            }
-        }
-    };
+    // Removed handleRefreshRates as manual update is disabled
+
 
     const stats = useMemo(() => {
-        const totalTournaments = tournaments.length;
-        const totalRounds = tournaments.reduce((acc, t) => acc + (t.rounds || 0), 0);
+        // Apply Filter
+        const filteredTournaments = filterMode === 'confirmed'
+            ? tournaments.filter(t => t.isGoing)
+            : tournaments;
+
+        const totalTournaments = filteredTournaments.length;
+        const totalRounds = filteredTournaments.reduce((acc, t) => acc + (t.rounds || 0), 0);
 
         // Financial Stats
         let totalBudget = 0;
@@ -75,18 +87,33 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         // Group by Country
         const countryStats: Record<string, { count: number, rounds: number, totalBudget: number, list: Tournament[] }> = {};
 
-        tournaments.forEach(t => {
+        filteredTournaments.forEach(t => {
+            // Determine effective budget and currency based on source
+            const isDetailed = t.budgetSource === 'detailed';
+            let effectiveBudget = 0;
+            let effectiveCurrency: Currency = 'TRY';
+
+            if (isDetailed && t.expenses) {
+                const sumCurrency = t.summaryCurrency || 'EUR';
+                effectiveBudget = t.expenses.reduce((sum, e) =>
+                    sum + convertCurrency(Number(e.amount) || 0, e.currency, sumCurrency), 0);
+                effectiveCurrency = sumCurrency;
+            } else if (t.budget) {
+                effectiveBudget = t.budget;
+                effectiveCurrency = t.currency || 'TRY';
+            }
+
             // Financial Calculation
             let amountForGlobal = 0;
             let amountForCountry = 0;
 
-            if (t.budget && t.currency) {
+            if (effectiveBudget > 0) {
                 // Global stats depend on displayCurrency
-                amountForGlobal = convertCurrency(t.budget, t.currency, displayCurrency);
+                amountForGlobal = convertCurrency(effectiveBudget, effectiveCurrency, displayCurrency);
                 totalBudget += amountForGlobal;
 
                 // Country stats always stored in TRY (Base) to allow independent conversion later
-                amountForCountry = convertCurrency(t.budget, t.currency, 'TRY');
+                amountForCountry = convertCurrency(effectiveBudget, effectiveCurrency, 'TRY');
 
                 const month = new Date(t.startDate).getMonth(); // 0-11
                 const quarter = Math.floor(month / 3) + 1; // 1-4
@@ -120,7 +147,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             countries,
             countryStats
         };
-    }, [tournaments, displayCurrency, refreshKey]);
+    }, [tournaments, displayCurrency, refreshKey, filterMode]);
 
     const getFlagUrl = (countryName: string) => {
         const c = COUNTRIES.find(c => c.name.toLowerCase() === countryName.toLowerCase());
@@ -174,14 +201,32 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                                         <span className="box-val">{t.rounds}</span>
                                         <span className="box-lbl">Rounds</span>
                                     </div>
-                                    {t.budget && t.currency && (
-                                        <div className="detail-box budget-box">
-                                            <span className="box-val">
-                                                {formatCurrency(t.budget, t.currency)}
-                                            </span>
-                                            <span className="box-lbl">Budget</span>
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const isDetailed = t.budgetSource === 'detailed';
+                                        let displayBudget = 0;
+                                        let displayCurrency: Currency = 'TRY';
+
+                                        if (isDetailed && t.expenses) {
+                                            displayCurrency = t.summaryCurrency || 'EUR';
+                                            displayBudget = t.expenses.reduce((sum, e) =>
+                                                sum + convertCurrency(Number(e.amount) || 0, e.currency, displayCurrency), 0);
+                                        } else if (t.budget) {
+                                            displayBudget = t.budget;
+                                            displayCurrency = t.currency || 'TRY';
+                                        }
+
+                                        if (displayBudget > 0) {
+                                            return (
+                                                <div className="detail-box budget-box">
+                                                    <span className="box-val">
+                                                        {formatCurrency(displayBudget, displayCurrency)}
+                                                    </span>
+                                                    <span className="box-lbl">Budget ({isDetailed ? 'Det' : 'Bas'})</span>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
                                     {t.link && (
                                         <a href={t.link} target="_blank" rel="noreferrer" className="link-text">
                                             Visit ↗
@@ -197,6 +242,51 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             {/* Main Stats Panel */}
             <div className="stats-panel">
                 <h2 className="panel-title">TOURNAMENT SCHEDULE FOR YEAR {selectedYear}</h2>
+
+                <div className="filter-toggle-container">
+                    <div className="filter-segmented-control">
+                        <button
+                            className={`filter-btn ${filterMode === 'all' ? 'active' : ''}`}
+                            onClick={() => onFilterChange('all')}
+                        >
+                            ALL
+                        </button>
+                        <button
+                            className={`filter-btn ${filterMode === 'confirmed' ? 'active' : ''}`}
+                            onClick={() => onFilterChange('confirmed')}
+                        >
+                            CONFIRMED
+                        </button>
+                    </div>
+                    <button
+                        className="export-excel-btn"
+                        onClick={() => {
+                            const listToExport = filterMode === 'confirmed'
+                                ? tournaments.filter(t => t.isGoing)
+                                : tournaments;
+                            // @ts-ignore - Ignoring implicit any for rates if types mismatch, but rates are available in scope? No.
+                            // Rates are inside convertCurrency logic or need to be fetched?
+                            // StatsPanel doesn't hold 'rates' state directly exposed? 
+                            // Ah, fetchExchangeRates returns them but doesn't expose 'rates' object easily here?
+                            // Actually, let's check imports. `convertCurrency` uses internal cache? 
+                            // Wait, `fetchExchangeRates` updates local storage. 
+                            // We need to pass rates. 
+                            // Let's grab them from localStorage or modify currencyService to export them?
+                            // Quick fix: user wants it now. I'll read from localStorage or just pass an empty object if handled inside.
+                            // Actually, let's just use the helper in `excelService`? 
+                            // No, I defined `rates` as arg.
+                            // Let's use `exchangeRates` from context if available? 
+                            // `StatsPanel` doesn't have `rates`. 
+                            // Let's retrieve them.
+                            const storedInfo = localStorage.getItem('exchangeRatesInfo');
+                            const rates = storedInfo ? JSON.parse(storedInfo).rates : {};
+                            exportTournamentsToExcel(listToExport, displayCurrency, rates);
+                        }}
+                        title="Export to Excel"
+                    >
+                        📥 Excel
+                    </button>
+                </div>
 
                 <div className="stats-grid">
                     <div className="stat-card">
@@ -216,32 +306,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 {/* Financial Overview */}
                 <div className="financial-overview">
                     <div className="financial-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h3>Financial Overview</h3>
-                            <button
-                                onClick={handleRefreshRates}
-                                style={{
-                                    background: 'none',
-                                    border: '1px solid #444',
-                                    color: '#888',
-                                    cursor: 'pointer',
-                                    padding: '2px 6px',
-                                    fontSize: '0.8rem',
-                                    borderRadius: '4px'
-                                }}
-                                title="Update Live Rates"
-                            >
-                                ↻
-                            </button>
-                        </div>
-                        <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '4px', textAlign: 'right' }}>
-                            {(() => {
-                                const info = getRateInfo();
-                                if (info.source === 'Default') return 'Using Default Rates';
-                                const date = new Date(info.lastUpdated);
-                                return `Live: ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-                            })()}
-                        </div>
+                        <h3>Financial Overview</h3>
                     </div>
 
                     <div className="budget-total-card">
@@ -274,7 +339,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 </div>
 
                 <div className="country-settings">
-                    <h3>Country Colors</h3>
+                    <h3>Countries</h3>
                     {stats.countries.length === 0 && <p className="empty-msg">No countries yet.</p>}
 
                     <div className="country-list">
@@ -300,7 +365,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                                             />
 
                                             {flag && <img src={flag} alt={country} className="flag-icon" />}
-                                            <span className="country-name">{country}</span>
                                         </div>
 
                                         <div className="mini-stats-row">
@@ -322,7 +386,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                                             </div>
                                             <div className="mini-stat-card">
                                                 <span className="mini-val">{data.count}</span>
-                                                <span className="mini-lbl">Trn</span>
+                                                <span className="mini-lbl">Tournaments</span>
                                             </div>
                                         </div>
                                     </div>

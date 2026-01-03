@@ -3,6 +3,7 @@ export type ExpenseItem = {
     title: string;
     amount: number;
     currency: 'TRY' | 'USD' | 'EUR';
+    link?: string;
 };
 
 export type Tournament = {
@@ -17,6 +18,9 @@ export type Tournament = {
     budget?: number;
     currency?: 'TRY' | 'USD' | 'EUR';
     expenses?: ExpenseItem[];
+    budgetSource?: 'basic' | 'detailed';
+    summaryCurrency?: 'TRY' | 'USD' | 'EUR';
+    isGoing?: boolean;
 };
 
 export type CalendarDay = {

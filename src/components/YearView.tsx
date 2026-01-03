@@ -9,11 +9,14 @@ import './YearView.css';
 const YearView: React.FC = () => {
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedYear, setSelectedYear] = useState(2025);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     // Stats & Color State
     const [countryColors, setCountryColors] = useState<Record<string, string>>({});
     const [activeCountry, setActiveCountry] = useState<string | null>(null);
+
+    // Filter Mode State (Lifted from StatsPanel)
+    const [filterMode, setFilterMode] = useState<'all' | 'confirmed'>('all');
 
     // Selection Mode State (view | add | delete)
     const [mode, setMode] = useState<'view' | 'add' | 'delete'>('view');
@@ -138,6 +141,12 @@ const YearView: React.FC = () => {
         setSelectedDeleteId(null);
     };
 
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectionStart(null);
+        setSelectionEnd(null);
+    };
+
     if (loading) {
         return <div className="loading-state">Loading calendar...</div>;
     }
@@ -145,8 +154,10 @@ const YearView: React.FC = () => {
     // Generate array of 0..11 for months
     const months = Array.from({ length: 12 }, (_, i) => i);
 
-    // No filtering for calendar, always show all
-    const visibleTournaments = tournaments;
+    // Calendar Filtering Logic
+    const visibleTournaments = filterMode === 'confirmed'
+        ? tournaments.filter(t => t.isGoing)
+        : tournaments;
 
     return (
         <div className="app-layout">
@@ -227,7 +238,8 @@ const YearView: React.FC = () => {
                         initialTournament={tournaments.find(
                             t => t.startDate === selectionStart && t.endDate === selectionEnd
                         )}
-                        onClose={() => setIsModalOpen(false)}
+                        existingTournaments={tournaments}
+                        onClose={handleModalClose}
                         onSave={handleModalSave}
                     />
                 )}
@@ -242,6 +254,8 @@ const YearView: React.FC = () => {
                 selectedYear={selectedYear}
                 onTournamentChange={handleTournamentChange}
                 onTournamentClick={handleSirenToggle}
+                filterMode={filterMode}
+                onFilterChange={setFilterMode}
             />
         </div>
     );

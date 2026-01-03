@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { addTournament, updateTournament } from '../services/tournamentService';
-import { formatDateDisplay } from '../config/locale';
+// import { formatDateDisplay } from '../config/locale';
 import { COUNTRIES, type CountryData } from '../data/countries';
 import { convertCurrency, formatCurrency, type Currency } from '../services/currencyService';
 import type { Tournament, ExpenseItem } from '../types';
 import './TournamentModal.css';
 
+// Helper to check if a link is valid/active
+const hasLink = (link?: string) => link && link.trim().length > 0;
+
 interface TournamentModalProps {
     startDate: string;
     endDate: string;
     initialTournament?: Tournament;
+    existingTournaments: Tournament[];
     onClose: () => void;
     onSave: () => void;
 }
 
-const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, initialTournament, onClose, onSave }) => {
+const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, initialTournament, existingTournaments, onClose, onSave }) => {
+    const [formStartDate, setFormStartDate] = useState(initialTournament ? initialTournament.startDate : startDate);
+    const [formEndDate, setFormEndDate] = useState(initialTournament ? initialTournament.endDate : endDate);
+
     const [title, setTitle] = useState(initialTournament ? initialTournament.title : '');
     const [country, setCountry] = useState(initialTournament && initialTournament.country ? initialTournament.country : '');
     const [link, setLink] = useState(initialTournament && initialTournament.link ? initialTournament.link : '');
@@ -27,9 +34,19 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Detailed Budget State
-    const [showDetailedBudget, setShowDetailedBudget] = useState(false);
     const [expenses, setExpenses] = useState<ExpenseItem[]>(initialTournament?.expenses || []);
-    const [summaryCurrency, setSummaryCurrency] = useState<Currency>('EUR');
+    // State to track which expense row has the link input open
+    const [openLinkIndex, setOpenLinkIndex] = useState<string | null>(null);
+
+    const [summaryCurrency, setSummaryCurrency] = useState<Currency>(initialTournament?.summaryCurrency || initialTournament?.currency || 'EUR');
+
+
+    const [budgetSource, setBudgetSource] = useState<'basic' | 'detailed'>(
+        initialTournament?.budgetSource || (initialTournament?.expenses && initialTournament.expenses.some(e => Number(e.amount) > 0) ? 'detailed' : 'basic')
+    );
+
+    // Participation Status
+    const [isGoing, setIsGoing] = useState(initialTournament?.isGoing || false);
 
     // Autocomplete state
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -115,28 +132,50 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
         return sum + convertCurrency(Number(item.amount) || 0, item.currency, summaryCurrency);
     }, 0);
 
-    const handleUseTotal = () => {
-        setBudget(Math.round(totalExpense));
-        setCurrency(summaryCurrency);
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title) return;
+
+        // 1. Basic Validation: End Date cannot be before Start Date
+        if (new Date(formEndDate) < new Date(formStartDate)) {
+            alert('End Date cannot be earlier than Start Date!');
+            return;
+        }
+
+        // 2. Conflict Detection (Overlap)
+        const conflict = existingTournaments.find(t => {
+            // Skip self check
+            if (initialTournament && t.id === initialTournament.id) return false;
+
+            const A_Start = new Date(formStartDate);
+            const A_End = new Date(formEndDate);
+            const B_Start = new Date(t.startDate);
+            const B_End = new Date(t.endDate);
+
+            return (A_Start <= B_End) && (A_End >= B_Start);
+        });
+
+        if (conflict) {
+            alert(`Error: Cannot save. These dates overlap with existing tournament: "${conflict.title}". \n\nPlease choose different dates.`);
+            return;
+        }
 
         setIsSubmitting(true);
         try {
             const tournamentData = {
                 title,
-                startDate,
-                endDate,
+                startDate: formStartDate,
+                endDate: formEndDate,
                 country: country || undefined,
                 link: link || undefined,
                 rounds: rounds ? Number(rounds) : undefined,
                 type,
                 budget: budget ? Number(budget) : undefined,
                 currency,
-                expenses: expenses.length > 0 ? expenses : undefined
+                expenses: expenses.length > 0 ? expenses : undefined,
+                budgetSource,
+                summaryCurrency,
+                isGoing
             };
 
             if (initialTournament) {
@@ -155,11 +194,39 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay">
             <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close">×</button>
                 <h2 className="modal-title">{initialTournament ? 'Edit Tournament' : 'Add New Tournament'}</h2>
-                <div className="date-display">
-                    {formatDateDisplay(startDate)} <span className="arrow">→</span> {formatDateDisplay(endDate)}
+
+                <div className="date-display" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <input
+                        type="date"
+                        className="date-input-field"
+                        value={formStartDate}
+                        onChange={(e) => setFormStartDate(e.target.value)}
+                        required
+                    />
+                    <span className="arrow">→</span>
+                    <input
+                        type="date"
+                        className="date-input-field"
+                        value={formEndDate}
+                        onChange={(e) => setFormEndDate(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="participation-section">
+                    <div
+                        className={`participation-toggle ${isGoing ? 'going' : ''}`}
+                        onClick={() => setIsGoing(!isGoing)}
+                    >
+                        <div className="toggle-checkbox"></div>
+                        <span className="participation-label">
+                            {isGoing ? 'I am planning to play! ♟️' : 'I am planning to play'}
+                        </span>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit}>
@@ -215,18 +282,27 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                     </div>
 
                     <div className="form-group">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <label style={{ margin: 0 }}>Budget</label>
-                            <button
-                                type="button"
-                                className={`detailed-budget-toggle ${showDetailedBudget ? 'active' : ''}`}
-                                onClick={() => setShowDetailedBudget(!showDetailedBudget)}
-                            >
-                                {showDetailedBudget ? 'Simple Mode' : 'Detailed Budget Plan'}
-                            </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                            <label style={{ margin: 0, fontSize: '0.9rem', color: '#aaa' }}>Which budget plan to use?</label>
+                            <div className="segmented-control source-selector">
+                                <button
+                                    type="button"
+                                    className={`segmented-btn ${budgetSource === 'basic' ? 'active' : ''}`}
+                                    onClick={() => setBudgetSource('basic')}
+                                >
+                                    Basic Budget
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`segmented-btn ${budgetSource === 'detailed' ? 'active' : ''}`}
+                                    onClick={() => setBudgetSource('detailed')}
+                                >
+                                    Detailed Breakdown
+                                </button>
+                            </div>
                         </div>
 
-                        {!showDetailedBudget && (
+                        {budgetSource === 'basic' && (
                             <div className="budget-input-row" style={{ display: 'flex', gap: '8px' }}>
                                 <input
                                     type="number"
@@ -252,33 +328,69 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                         )}
                     </div>
 
-                    {showDetailedBudget && (
+                    {budgetSource === 'detailed' && (
                         <div className="detailed-budget-section">
                             {expenses.map((expense) => (
-                                <div key={expense.id} className="expense-row">
-                                    <div className="expense-label">
-                                        {expense.title}
-                                    </div>
-                                    <input
-                                        type="number"
-                                        className="expense-amount-input"
-                                        value={expense.amount === 0 ? '' : expense.amount}
-                                        onChange={(e) => handleUpdateExpense(expense.id, 'amount', Number(e.target.value))}
-                                        placeholder="0"
-                                        onFocus={e => e.target.select()}
-                                    />
-                                    <div className="expense-segmented-control">
-                                        {(['TRY', 'USD', 'EUR'] as const).map(c => (
+                                <div key={expense.id} className="expense-container">
+                                    <div className="expense-row">
+                                        <div className="expense-label">
+                                            {expense.title}
                                             <button
-                                                key={c}
                                                 type="button"
-                                                className={`expense-segmented-btn ${expense.currency === c ? 'active' : ''}`}
-                                                onClick={() => handleUpdateExpense(expense.id, 'currency', c)}
+                                                className={`expense-link-btn ${hasLink(expense.link) ? 'active' : ''}`}
+                                                onClick={() => setOpenLinkIndex(openLinkIndex === expense.id ? null : expense.id)}
+                                                title={hasLink(expense.link) ? "Edit Link" : "Add Link"}
+                                                style={{ marginRight: '4px' }}
                                             >
-                                                {c}
+                                                🔗
                                             </button>
-                                        ))}
+                                            {hasLink(expense.link) && (
+                                                <a
+                                                    href={expense.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="expense-link-visit-small"
+                                                    title="Visit Link"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    ↗
+                                                </a>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="number"
+                                            className="expense-amount-input"
+                                            value={expense.amount === 0 ? '' : expense.amount}
+                                            onChange={(e) => handleUpdateExpense(expense.id, 'amount', Number(e.target.value))}
+                                            placeholder="0"
+                                            onFocus={e => e.target.select()}
+                                        />
+                                        <div className="expense-segmented-control">
+                                            {(['TRY', 'USD', 'EUR'] as const).map(c => (
+                                                <button
+                                                    key={c}
+                                                    type="button"
+                                                    className={`expense-segmented-btn ${expense.currency === c ? 'active' : ''}`}
+                                                    onClick={() => handleUpdateExpense(expense.id, 'currency', c)}
+                                                >
+                                                    {c}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
+                                    {/* Link Input Section */}
+                                    {openLinkIndex === expense.id && (
+                                        <div className="expense-link-input-row">
+                                            <input
+                                                type="url"
+                                                className="expense-link-input"
+                                                value={expense.link || ''}
+                                                onChange={(e) => handleUpdateExpense(expense.id, 'link', e.target.value)}
+                                                placeholder="Paste URL here (e.g. https://booking.com/...)"
+                                                autoFocus
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             ))}
 
@@ -299,15 +411,8 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                                     <div className="summary-total-value">
                                         {formatCurrency(totalExpense, summaryCurrency)}
                                     </div>
-                                    <div className="summary-total-label">TOTAL ESTIMATED BUDGET</div>
+                                    <div className="summary-total-label">TOTAL (CALCULATED)</div>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="use-total-btn"
-                                    onClick={handleUseTotal}
-                                >
-                                    Use Estimate ⬆
-                                </button>
                             </div>
                         </div>
                     )}
@@ -357,9 +462,16 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                             <div className="modal-footer-budget">
                                 <div className="budget-total-card">
                                     <span className="budget-value">
-                                        {formatCurrency(convertCurrency(Number(budget), currency, summaryCurrency), summaryCurrency)}
+                                        {formatCurrency(
+                                            budgetSource === 'basic'
+                                                ? convertCurrency(Number(budget) || 0, currency, summaryCurrency)
+                                                : totalExpense,
+                                            summaryCurrency
+                                        )}
                                     </span>
-                                    <span className="budget-label">TOTAL ESTIMATED BUDGET</span>
+                                    <span className="budget-label">
+                                        OFFICIAL BUDGET ({budgetSource.toUpperCase()})
+                                    </span>
                                 </div>
                                 <div className="summary-currency-toggles" style={{ marginTop: '8px', justifyContent: 'center' }}>
                                     {(['TRY', 'USD', 'EUR'] as const).map(c => (

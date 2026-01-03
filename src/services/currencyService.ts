@@ -9,15 +9,9 @@ export interface RateInfo {
     source: 'Default' | 'Live';
 }
 
-const DEFAULT_RATES: Record<Currency, number> = {
-    'TRY': 1,
-    'USD': 42.50,
-    'EUR': 44.50
-};
-
-// Initialize with Cached Rates or Fallbacks
+// Initialize with Cached Rates or Empty State (No fake defaults)
 let currentRateInfo: RateInfo = {
-    rates: DEFAULT_RATES,
+    rates: { 'TRY': 1, 'USD': 0, 'EUR': 0 }, // 0 indicates not fetched yet
     lastUpdated: 0,
     source: 'Default'
 };
@@ -36,8 +30,21 @@ let EXCHANGE_RATES = currentRateInfo.rates;
 
 export const getRateInfo = () => currentRateInfo;
 
-export const fetchExchangeRates = async () => {
+export const fetchExchangeRates = async (auto = false) => {
     try {
+        if (auto) {
+            const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            if (now - currentRateInfo.lastUpdated < ONE_DAY_MS) {
+                console.log("-----------------------------------------");
+                console.log("Currency rates are fresh (Skipping Auto-Fetch)");
+                console.log(`Last Updated: ${new Date(currentRateInfo.lastUpdated).toLocaleString()}`);
+                console.log("Current Rates:", currentRateInfo.rates);
+                console.log("-----------------------------------------");
+                return false; // Skipped
+            }
+        }
+
         console.log("Fetching live currency rates from FxRatesAPI...");
 
         let url = 'https://api.fxratesapi.com/latest?base=TRY';
@@ -69,7 +76,10 @@ export const fetchExchangeRates = async () => {
             // Cache the new info
             localStorage.setItem('exchangeRatesInfo', JSON.stringify(currentRateInfo));
 
-            console.log('Currency rates updated & cached:', EXCHANGE_RATES);
+            console.log("-----------------------------------------");
+            console.log('Currency rates UPDATED & CACHED:', EXCHANGE_RATES);
+            console.log(`Time: ${new Date().toLocaleString()}`);
+            console.log("-----------------------------------------");
             return true;
         } else {
             console.warn('FxRatesAPI returned data but success was false', data);
@@ -88,10 +98,16 @@ export const convertCurrency = (amount: number, from: Currency, to: Currency): n
     EXCHANGE_RATES = currentRateInfo.rates;
 
     // Convert to TRY first (Base)
-    const amountInTry = amount * EXCHANGE_RATES[from];
+    const rateFrom = EXCHANGE_RATES[from];
+    const rateTo = EXCHANGE_RATES[to];
+
+    // Safety check for uninitialized rates (avoid division by zero)
+    if (!rateFrom || !rateTo) return 0;
+
+    const amountInTry = amount * rateFrom;
 
     // Convert from TRY to target
-    return amountInTry / EXCHANGE_RATES[to];
+    return amountInTry / rateTo;
 };
 
 export const formatCurrency = (amount: number, currency: Currency): string => {

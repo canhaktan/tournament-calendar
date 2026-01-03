@@ -18,7 +18,7 @@
     /* Reduced padding from 2rem to save space */
     border-radius: 12px;
     width: 90%;
-    max-width: 450px;
+    max-width: 600px;
     max-height: 90vh;
     /* Ensure it fits on screen */
     overflow-y: auto;
@@ -26,6 +26,32 @@
     border: 1px solid #444;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     animation: modalSlideIn 0.3s ease-out;
+    position: relative;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.modal-close-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
 }
 
 @keyframes modalSlideIn {
@@ -38,6 +64,76 @@
         transform: translateY(0);
         opacity: 1;
     }
+}
+
+/* Participation Toggle */
+.participation-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.participation-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #1a1a1a;
+    padding: 10px 16px;
+    border-radius: 50px;
+    border: 1px solid #444;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+}
+
+.participation-toggle:hover {
+    border-color: #666;
+    background: #222;
+}
+
+.participation-toggle.going {
+    background: rgba(46, 204, 113, 0.15);
+    border-color: #2ecc71;
+}
+
+.toggle-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.participation-toggle.going .toggle-checkbox {
+    background: #2ecc71;
+    border-color: #2ecc71;
+}
+
+.toggle-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.2s;
+}
+
+.participation-toggle.going .toggle-checkbox::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.participation-label {
+    color: #888;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.participation-toggle.going .participation-label {
+    color: #2ecc71;
 }
 
 .modal-content h2 {
@@ -61,6 +157,34 @@
 
 .modal-dates .arrow {
     color: #666;
+}
+
+/* Custom Date Inputs */
+.date-display {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    color: #888;
+}
+
+.date-input-field {
+    background: #333;
+    border: 1px solid #444;
+    color: #eee;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1rem;
+    color-scheme: dark;
+    /* Important for dark mode calendar icon */
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.date-input-field:focus {
+    border-color: #646cff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.25);
 }
 
 .form-group {
@@ -126,7 +250,23 @@
     background: #646cff;
     color: white;
     font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(100, 108, 255, 0.4);
+}
+
+.source-selector {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    padding: 6px;
+}
+
+.source-selector .segmented-btn {
+    padding: 8px;
+    font-size: 0.85rem;
+}
+
+.source-selector .segmented-btn.active {
+    background: linear-gradient(135deg, #646cff, #535bf2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Detailed Budget Styles */
@@ -152,33 +292,7 @@
 }
 
 /* Toggle Button - More friendly/prominent */
-.detailed-budget-toggle {
-    background: #2a2a2a;
-    color: #ccc;
-    border: 1px solid #444;
-    padding: 4px 12px;
-    border-radius: 12px;
-    /* Compact Pill */
-    font-size: 0.75rem;
-    cursor: pointer;
-    margin-left: auto;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.detailed-budget-toggle:hover {
-    background: #333;
-    color: white;
-    border-color: #666;
-}
-
-.detailed-budget-toggle.active {
-    background: rgba(100, 108, 255, 0.15);
-    color: #8fa0ff;
-    border-color: rgba(100, 108, 255, 0.4);
-}
+/* detailed-budget-toggle removed in favor of source selector */
 
 /* Expense Rows - Fixed & Cleaner & Compact */
 .expense-row {
@@ -276,6 +390,108 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Link Button & Input */
+.expense-link-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0.3;
+    transition: all 0.2s;
+}
+
+.expense-link-btn:hover {
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.expense-link-btn.active {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(100, 108, 255, 0.5);
+}
+
+.expense-container {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+
+/* Modify expense-row to be inside container without its own border/bg */
+/* We override the previous .expense-row style to fit inside container */
+.expense-container .expense-row {
+    margin-bottom: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.expense-link-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 10px 10px 10px;
+    align-items: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.expense-link-input {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: #bbb;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.expense-link-input:focus {
+    border-color: #646cff;
+    outline: none;
+}
+
+.expense-link-visit {
+    color: #646cff;
+    text-decoration: none;
+    background: #333;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.expense-link-visit:hover {
+    background: #646cff;
+    color: white;
+}
+
+/* New small visit button next to label */
+.expense-link-visit-small {
+    color: #646cff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    background: rgba(100, 108, 255, 0.1);
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2px;
+}
+
+.expense-link-visit-small:hover {
+    background: #646cff;
+    color: white;
+}
+
 /* Total Summary Area - Compact Row Layout */
 .budget-summary {
     margin-top: 12px;
@@ -364,26 +580,7 @@
     margin-top: 2px;
 }
 
-/* Use Total Button */
-.use-total-btn {
-    background: white;
-    color: black;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 14px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: transform 0.2s;
-    white-space: nowrap;
-}
-
-.use-total-btn:hover {
-    transform: scale(1.05);
-}
+/* use-total-btn removed */
 
 /* Autocomplete */
 .autocomplete-wrapper {
