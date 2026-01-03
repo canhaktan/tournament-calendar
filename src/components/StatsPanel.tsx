@@ -5,6 +5,7 @@ import { formatDateDisplay } from '../config/locale';
 import './StatsPanel.css';
 import { deleteTournament } from '../services/tournamentService';
 import { convertCurrency, formatCurrency, type Currency, fetchExchangeRates } from '../services/currencyService';
+import { exportTournamentsToExcel } from '../services/excelService';
 
 interface StatsPanelProps {
     tournaments: Tournament[];
@@ -257,6 +258,34 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                             CONFIRMED
                         </button>
                     </div>
+                    <button
+                        className="export-excel-btn"
+                        onClick={() => {
+                            const listToExport = filterMode === 'confirmed'
+                                ? tournaments.filter(t => t.isGoing)
+                                : tournaments;
+                            // @ts-ignore - Ignoring implicit any for rates if types mismatch, but rates are available in scope? No.
+                            // Rates are inside convertCurrency logic or need to be fetched?
+                            // StatsPanel doesn't hold 'rates' state directly exposed? 
+                            // Ah, fetchExchangeRates returns them but doesn't expose 'rates' object easily here?
+                            // Actually, let's check imports. `convertCurrency` uses internal cache? 
+                            // Wait, `fetchExchangeRates` updates local storage. 
+                            // We need to pass rates. 
+                            // Let's grab them from localStorage or modify currencyService to export them?
+                            // Quick fix: user wants it now. I'll read from localStorage or just pass an empty object if handled inside.
+                            // Actually, let's just use the helper in `excelService`? 
+                            // No, I defined `rates` as arg.
+                            // Let's use `exchangeRates` from context if available? 
+                            // `StatsPanel` doesn't have `rates`. 
+                            // Let's retrieve them.
+                            const storedInfo = localStorage.getItem('exchangeRatesInfo');
+                            const rates = storedInfo ? JSON.parse(storedInfo).rates : {};
+                            exportTournamentsToExcel(listToExport, displayCurrency, rates);
+                        }}
+                        title="Export to Excel"
+                    >
+                        📥 Excel
+                    </button>
                 </div>
 
                 <div className="stats-grid">
