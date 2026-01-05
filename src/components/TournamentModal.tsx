@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { addTournament, updateTournament } from '../services/tournamentService';
-// import { formatDateDisplay } from '../config/locale';
+import { formatDateDisplay } from '../config/locale';
 import { COUNTRIES, type CountryData } from '../data/countries';
 import { convertCurrency, formatCurrency, type Currency } from '../services/currencyService';
 import type { Tournament, ExpenseItem } from '../types';
@@ -199,22 +199,29 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                 <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Close">×</button>
                 <h2 className="modal-title">{initialTournament ? 'Edit Tournament' : 'Add New Tournament'}</h2>
 
-                <div className="date-display" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    <input
-                        type="date"
-                        className="date-input-field"
-                        value={formStartDate}
-                        onChange={(e) => setFormStartDate(e.target.value)}
-                        required
-                    />
-                    <span className="arrow">→</span>
-                    <input
-                        type="date"
-                        className="date-input-field"
-                        value={formEndDate}
-                        onChange={(e) => setFormEndDate(e.target.value)}
-                        required
-                    />
+                <div className="date-display" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                        <input
+                            type="date"
+                            className="date-input-field"
+                            value={formStartDate}
+                            onChange={(e) => setFormStartDate(e.target.value)}
+                            required
+                        />
+                        <span className="arrow">→</span>
+                        <input
+                            type="date"
+                            className="date-input-field"
+                            value={formEndDate}
+                            onChange={(e) => setFormEndDate(e.target.value)}
+                            required
+                        />
+                    </div>
+                    {formStartDate && formEndDate && (
+                        <div style={{ marginTop: '8px', color: '#888', fontSize: '0.95rem', fontWeight: 500 }}>
+                            {formatDateDisplay(formStartDate)} - {formatDateDisplay(formEndDate)}
+                        </div>
+                    )}
                 </div>
 
                 <div className="participation-section">
