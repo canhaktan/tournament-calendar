@@ -87,10 +87,14 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
         if (expenses.length === 0) {
             setExpenses(defaultCategories.map(c => ({ ...c, amount: 0 } as ExpenseItem)));
         } else {
-            // Auto-update titles for legacy data (e.g. converting Turkish labels to English)
+            // Auto-update titles for legacy data
+            // We only update titles for items that MATCH the original IDs '1'..'5'.
+            // Extra plane tickets won't match '1'..'5' so they are safe from rename overrides if we were doing strict by-index mapping,
+            // but here we map by ID.
             let hasChanges = false;
             const updatedExpenses = expenses.map(item => {
                 const def = defaultCategories.find(d => d.id === item.id);
+                // Only update title if it's one of the default categories
                 if (def && item.title !== def.title) {
                     hasChanges = true;
                     return { ...item, title: def.title };
@@ -126,6 +130,69 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
         setExpenses(expenses.map(e =>
             e.id === id ? { ...e, [field]: value } : e
         ));
+    };
+
+    const handleAddExpense = (afterId: string, templateTitle: string, templateCurrency: string) => {
+        const newId = `ext-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        setExpenses(prev => {
+            const index = prev.findIndex(e => e.id === afterId);
+            if (index === -1) return prev;
+
+            // Calculate the next number for "Plane tickets"
+            // We count how many items START with "Plane tickets" to determine the next number.
+            // Or simpler: just count how many there are total.
+            const planeTicketCount = prev.filter(e => e.title.startsWith('Plane tickets')).length;
+            const newTitle = `Plane tickets ${planeTicketCount + 1}`;
+
+            const newItem: ExpenseItem = {
+                id: newId,
+                title: newTitle,
+                amount: 0,
+                currency: templateCurrency as any,
+                link: ''
+            };
+
+            const newExpenses = [...prev];
+
+            // Find the last index of "Plane tickets" to insert after it
+            // ensuring sequential order: PT, PT 2, PT 3...
+            // We search from the end or just map and find last match.
+            let insertIndex = index;
+            for (let i = index + 1; i < newExpenses.length; i++) {
+                if (newExpenses[i].title.startsWith('Plane tickets')) {
+                    insertIndex = i;
+                } else {
+                    // Stop if we hit a different category
+                    // Assuming Plane tickets are grouped together. 
+                    // If they are not grouped, we might just want to insert after the last one found.
+                    // But usually expenses are grouped by default categories order.
+                    break;
+                }
+            }
+
+            newExpenses.splice(insertIndex + 1, 0, newItem);
+            return newExpenses;
+        });
+    };
+
+    const handleRemoveExpense = (id: string) => {
+        setExpenses(prev => {
+            const filtered = prev.filter(e => e.id !== id);
+
+            // Re-sequence Plane tickets titles
+            let planeTicketCounter = 1;
+            return filtered.map(item => {
+                if (item.title.startsWith('Plane tickets')) {
+                    const newTitle = planeTicketCounter === 1 ? 'Plane tickets' : `Plane tickets ${planeTicketCounter}`;
+                    planeTicketCounter++;
+
+                    if (item.title !== newTitle) {
+                        return { ...item, title: newTitle };
+                    }
+                }
+                return item;
+            });
+        });
     };
 
     const totalExpense = expenses.reduce((sum, item) => {
@@ -337,69 +404,128 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
 
                     {budgetSource === 'detailed' && (
                         <div className="detailed-budget-section">
-                            {expenses.map((expense) => (
-                                <div key={expense.id} className="expense-container">
-                                    <div className="expense-row">
-                                        <div className="expense-label">
-                                            {expense.title}
-                                            <button
-                                                type="button"
-                                                className={`expense-link-btn ${hasLink(expense.link) ? 'active' : ''}`}
-                                                onClick={() => setOpenLinkIndex(openLinkIndex === expense.id ? null : expense.id)}
-                                                title={hasLink(expense.link) ? "Edit Link" : "Add Link"}
-                                                style={{ marginRight: '4px' }}
-                                            >
-                                                🔗
-                                            </button>
-                                            {hasLink(expense.link) && (
-                                                <a
-                                                    href={expense.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="expense-link-visit-small"
-                                                    title="Visit Link"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    ↗
-                                                </a>
-                                            )}
-                                        </div>
-                                        <input
-                                            type="number"
-                                            className="expense-amount-input"
-                                            value={expense.amount === 0 ? '' : expense.amount}
-                                            onChange={(e) => handleUpdateExpense(expense.id, 'amount', Number(e.target.value))}
-                                            placeholder="0"
-                                            onFocus={e => e.target.select()}
-                                        />
-                                        <div className="expense-segmented-control">
-                                            {(['TRY', 'USD', 'EUR'] as const).map(c => (
+                            {expenses.map((expense) => {
+                                // Logic to identify if this is a "Plane tickets" row (original or extra)
+                                // We rely on the ID '1' or the title 'Plane tickets'. 
+                                // Since users can have multiple 'Plane tickets', checking title is safer for the ADD button condition,
+                                // BUT the ADD button should only appear on the logic context.
+                                // Actually, let's just make ID '1' the "Primary" one that has the (+).
+                                // And any ID starting with 'ext-' or simply NOT '1'...'5' is removable.
+                                const isPrimaryPlaneTicket = expense.id === '1';
+                                // Check if it starts with 'Plane tickets' effectively, but purely relying on ID != '1' 
+                                // and title check is safer to strictly target plane tickets rows we added.
+                                const isExtraPlaneTicket = expense.title.startsWith('Plane tickets') && expense.id !== '1';
+
+                                return (
+                                    <div key={expense.id} className="expense-container">
+                                        <div className="expense-row">
+                                            <div className="expense-label" style={{ display: 'flex', alignItems: 'center' }}>
+                                                {expense.title}
+                                                {/* Add Button for Plane Tickets */}
+                                                {isPrimaryPlaneTicket && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleAddExpense(expense.id, expense.title, expense.currency)}
+                                                        className="expense-add-btn"
+                                                        title="Add another ticket"
+                                                        style={{
+                                                            marginLeft: '6px',
+                                                            border: 'none',
+                                                            background: 'rgba(255,255,255,0.1)',
+                                                            color: '#4ade80',
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer',
+                                                            padding: '0 4px',
+                                                            fontSize: '1rem',
+                                                            lineHeight: '1.2'
+                                                        }}
+                                                    >
+                                                        +
+                                                    </button>
+                                                )}
+
+                                                <div style={{ flex: 1 }}></div>
+
+                                                {/* Link Toggle Button */}
                                                 <button
-                                                    key={c}
                                                     type="button"
-                                                    className={`expense-segmented-btn ${expense.currency === c ? 'active' : ''}`}
-                                                    onClick={() => handleUpdateExpense(expense.id, 'currency', c)}
+                                                    className={`expense-link-btn ${hasLink(expense.link) ? 'active' : ''}`}
+                                                    onClick={() => setOpenLinkIndex(openLinkIndex === expense.id ? null : expense.id)}
+                                                    title={hasLink(expense.link) ? "Edit Link" : "Add Link"}
+                                                    style={{ marginRight: '4px' }}
                                                 >
-                                                    {c}
+                                                    🔗
                                                 </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {/* Link Input Section */}
-                                    {openLinkIndex === expense.id && (
-                                        <div className="expense-link-input-row">
+                                                {hasLink(expense.link) && (
+                                                    <a
+                                                        href={expense.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="expense-link-visit-small"
+                                                        title="Visit Link"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        ↗
+                                                    </a>
+                                                )}
+
+                                                {/* Remove Button for Extra Plane Tickets */}
+                                                {isExtraPlaneTicket && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveExpense(expense.id)}
+                                                        className="expense-remove-btn"
+                                                        title="Remove ticket"
+                                                        style={{
+                                                            marginLeft: '4px',
+                                                            border: 'none',
+                                                            background: 'transparent',
+                                                            color: '#ef4444',
+                                                            cursor: 'pointer',
+                                                            fontSize: '1rem',
+                                                        }}
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                )}
+                                            </div>
                                             <input
-                                                type="url"
-                                                className="expense-link-input"
-                                                value={expense.link || ''}
-                                                onChange={(e) => handleUpdateExpense(expense.id, 'link', e.target.value)}
-                                                placeholder="Paste URL here (e.g. https://booking.com/...)"
-                                                autoFocus
+                                                type="number"
+                                                className="expense-amount-input"
+                                                value={expense.amount === 0 ? '' : expense.amount}
+                                                onChange={(e) => handleUpdateExpense(expense.id, 'amount', Number(e.target.value))}
+                                                placeholder="0"
+                                                onFocus={e => e.target.select()}
                                             />
+                                            <div className="expense-segmented-control">
+                                                {(['TRY', 'USD', 'EUR'] as const).map(c => (
+                                                    <button
+                                                        key={c}
+                                                        type="button"
+                                                        className={`expense-segmented-btn ${expense.currency === c ? 'active' : ''}`}
+                                                        onClick={() => handleUpdateExpense(expense.id, 'currency', c)}
+                                                    >
+                                                        {c}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                        {/* Link Input Section */}
+                                        {openLinkIndex === expense.id && (
+                                            <div className="expense-link-input-row">
+                                                <input
+                                                    type="url"
+                                                    className="expense-link-input"
+                                                    value={expense.link || ''}
+                                                    onChange={(e) => handleUpdateExpense(expense.id, 'link', e.target.value)}
+                                                    placeholder="Paste URL here (e.g. https://booking.com/...)"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
 
                             <div className="budget-summary">
                                 <div className="summary-currency-toggles">
