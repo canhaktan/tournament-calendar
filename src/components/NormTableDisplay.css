@@ -1,0 +1,92 @@
+.norm-table-container {
+    margin-top: 2rem;
+    background: #1e1e1e;
+    /* Match existing card bg */
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #333;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.table-title {
+    color: #eee;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.norm-ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    color: #ccc;
+}
+
+.norm-ref-table th,
+.norm-ref-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.norm-ref-table th {
+    color: #888;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.points-cell {
+    font-weight: bold;
+    color: #fff;
+}
+
+.range-cell {
+    transition: all 0.3s ease;
+}
+
+/* GM Highlight - Gold */
+.gm-highlight {
+    background: rgba(243, 156, 18, 0.2);
+    /* Semi-transparent Gold */
+    color: #f39c12;
+    font-weight: bold;
+    border-left: 3px solid #f39c12;
+    border-right: 3px solid #f39c12;
+}
+
+/* IM Highlight - Blue */
+.im-highlight {
+    background: rgba(52, 152, 219, 0.2);
+    /* Semi-transparent Blue */
+    color: #3498db;
+    font-weight: bold;
+    border-left: 3px solid #3498db;
+    border-right: 3px solid #3498db;
+}
+
+.table-note {
+    font-size: 0.8rem;
+    color: #555;
+    margin-top: 1rem;
+    text-align: right;
+    font-style: italic;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

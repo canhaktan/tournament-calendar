@@ -5,7 +5,8 @@ import type { Tournament } from '../types';
 export const exportTournamentsToExcel = async (
     tournaments: Tournament[],
     selectedCurrency: 'TRY' | 'USD' | 'EUR',
-    rates: Record<string, number>
+    rates: Record<string, number>,
+    userStats?: { gmNorms: number | string, imNorms: number | string, fideRating: number | string }
 ) => {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Tournaments 2026');
@@ -28,7 +29,7 @@ export const exportTournamentsToExcel = async (
     let currentRow = 2;
 
     // Draw Financial Summary at Top Right (Cols F-I)
-    drawFinancialSummary(sheet, 2, sortedTournaments, selectedCurrency, rates);
+    drawFinancialSummary(sheet, 2, sortedTournaments, selectedCurrency, rates, userStats);
 
     for (const t of sortedTournaments) {
         currentRow = drawTournamentBlock(sheet, t, currentRow, selectedCurrency, rates);
@@ -327,7 +328,8 @@ function drawFinancialSummary(
     startRow: number,
     tournaments: Tournament[],
     currency: string,
-    rates: Record<string, number>
+    rates: Record<string, number>,
+    userStats?: { gmNorms: number | string, imNorms: number | string, fideRating: number | string }
 ) {
     // 1. Calculate Stats Split by Status (Confirmed/Unknown)
     const totalTournaments = tournaments.length;
@@ -520,10 +522,10 @@ function drawFinancialSummary(
     const rPrint = sheet.getRow(r);
     const dateStr = formatDate(new Date().toISOString()); // e.g. 4.01.2026
     rPrint.getCell(C_START + 2).value = `Printed at: ${dateStr}`;
-    rPrint.getCell(C_START + 2).font = { name: 'Calibri', size: 12, italic: true }; // Keep this slightly smaller/different? Or 16? Let's keep 12 for metadata usually.
+    rPrint.getCell(C_START + 2).font = { name: 'Calibri', size: 12, italic: true };
     rPrint.getCell(C_START + 2).alignment = { horizontal: 'right' };
 
-    // Borders for outer box
+    // Borders for financial box
     const lastR = r;
     // Top (row startRow)
     for (let c = C_START; c <= C_END; c++) sheet.getRow(startRow).getCell(c).border = { ...sheet.getRow(startRow).getCell(c).border, top: { style: 'medium' } };
@@ -533,4 +535,33 @@ function drawFinancialSummary(
     for (let row = startRow; row <= lastR; row++) sheet.getRow(row).getCell(C_START).border = { ...sheet.getRow(row).getCell(C_START).border, left: { style: 'medium' } };
     // Right (col C_END)
     for (let row = startRow; row <= lastR; row++) sheet.getRow(row).getCell(C_END).border = { ...sheet.getRow(row).getCell(C_END).border, right: { style: 'medium' } };
+
+    // --- Draw User Stats (GM, IM, Rating) below Financial Summary ---
+    if (userStats) {
+        let rs = r + 2; // Leave one empty row
+
+        // GM Norms
+        const cellGM = sheet.getRow(rs).getCell(C_START);
+        cellGM.value = `GM NORMS: ${userStats.gmNorms}`;
+        cellGM.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }; // White text
+        cellGM.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF39C12' } }; // Gold
+        cellGM.alignment = { horizontal: 'center', vertical: 'middle' };
+        cellGM.border = { top: { style: 'medium' }, left: { style: 'medium' }, bottom: { style: 'medium' }, right: { style: 'medium' } };
+
+        // IM Norms
+        const cellIM = sheet.getRow(rs).getCell(C_START + 1);
+        cellIM.value = `IM NORMS: ${userStats.imNorms}`;
+        cellIM.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }; // White text
+        cellIM.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3498DB' } }; // Blue
+        cellIM.alignment = { horizontal: 'center', vertical: 'middle' };
+        cellIM.border = { top: { style: 'medium' }, left: { style: 'medium' }, bottom: { style: 'medium' }, right: { style: 'medium' } };
+
+        // FIDE Rating
+        const cellRating = sheet.getRow(rs).getCell(C_START + 2);
+        cellRating.value = `RATING: ${userStats.fideRating}`;
+        cellRating.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }; // White text
+        cellRating.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2ECC71' } }; // Green
+        cellRating.alignment = { horizontal: 'center', vertical: 'middle' };
+        cellRating.border = { top: { style: 'medium' }, left: { style: 'medium' }, bottom: { style: 'medium' }, right: { style: 'medium' } };
+    }
 }

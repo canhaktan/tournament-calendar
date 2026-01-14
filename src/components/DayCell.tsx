@@ -55,9 +55,20 @@ const DayCell: React.FC<DayCellProps> = ({
         }
     }
 
+    const isTournamentStart = hasTournament && tournament && date === tournament.startDate;
+    const isTournamentEnd = hasTournament && tournament && date === tournament.endDate;
+
+    const tournamentClasses = [
+        hasTournament ? 'has-event' : '',
+        isTournamentStart ? 'tournament-start' : '',
+        isTournamentEnd ? 'tournament-end' : '',
+        selectionClass,
+        className || ''
+    ].filter(Boolean).join(' ');
+
     return (
         <div
-            className={`day-cell ${hasTournament ? 'has-event' : ''} ${selectionClass} ${className || ''}`}
+            className={`day-cell ${tournamentClasses}`}
             title={tournament ? `${tournament.title} (${tournament.country || 'Global'})` : ''}
             onClick={handleDateClick}
             style={customStyle}

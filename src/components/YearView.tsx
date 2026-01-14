@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchTournaments } from '../services/tournamentService';
 import type { Tournament } from '../types';
 import MonthGrid from './MonthGrid';
@@ -7,6 +8,7 @@ import StatsPanel from './StatsPanel';
 import './YearView.css';
 
 const YearView: React.FC = () => {
+    const navigate = useNavigate();
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -188,6 +190,9 @@ const YearView: React.FC = () => {
                                 <button className="delete-mode-btn" onClick={() => setMode('delete')}>
                                     - Delete Tournament
                                 </button>
+                                <button className="calc-norm-btn" onClick={() => navigate('/norm')}>
+                                    Norm
+                                </button>
                             </div>
                         ) : (
                             <div className="selection-controls">
@@ -243,6 +248,7 @@ const YearView: React.FC = () => {
                         onSave={handleModalSave}
                     />
                 )}
+
             </div>
 
             <StatsPanel
