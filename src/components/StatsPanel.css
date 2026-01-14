@@ -220,6 +220,75 @@
     margin-top: 4px;
 }
 
+/* User Editable Stats */
+.stat-value-input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    /* Prevent jump on focus */
+    color: inherit;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    width: 100%;
+    /* Fill the container to ensure true center */
+    font-family: inherit;
+    padding: 0;
+    /* Remove padding to match span exactly */
+    margin: 0;
+    line-height: 1.2;
+    height: auto;
+    /* Let it size naturally like text */
+    cursor: text;
+    border-radius: 0;
+    -moz-appearance: textfield;
+    /* Firefox */
+}
+
+.stat-value-input::-webkit-outer-spin-button,
+.stat-value-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.stat-value-input:focus {
+    outline: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* GM Norm - Gold */
+.norm-card.gm-norm .stat-value-input {
+    color: #f39c12;
+    text-shadow: 0 0 10px rgba(243, 156, 18, 0.4);
+}
+
+.norm-card.gm-norm .stat-label {
+    color: #f39c12;
+    opacity: 0.8;
+}
+
+/* IM Norm - Blue */
+.norm-card.im-norm .stat-value-input {
+    color: #3498db;
+    text-shadow: 0 0 10px rgba(52, 152, 219, 0.4);
+}
+
+.norm-card.im-norm .stat-label {
+    color: #3498db;
+    opacity: 0.8;
+}
+
+/* FIDE Rating - Green */
+.norm-card.fide-rating .stat-value-input {
+    color: #2ecc71;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+}
+
+.norm-card.fide-rating .stat-label {
+    color: #2ecc71;
+    opacity: 0.8;
+}
+
 .country-settings h3 {
     font-size: 1.1rem;
     color: #ddd;
@@ -584,7 +653,8 @@
 
 /* Export Excel Button */
 .export-excel-btn {
-    background-color: #217346; /* Excel Green */
+    background-color: #217346;
+    /* Excel Green */
     color: white;
     border: none;
     padding: 0 16px;

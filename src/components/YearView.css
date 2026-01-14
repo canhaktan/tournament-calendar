@@ -213,6 +213,33 @@
     color: white;
     background-color: rgba(100, 108, 255, 0.2);
     border: 1px solid rgba(100, 108, 255, 0.5);
+    border-radius: 0;
+    /* Align adjacent cells */
+    margin: 0 -1px;
+    /* Remove gap visually to look continuous */
+    position: relative;
+    z-index: 1;
+}
+
+/* Specific Start/End Styling to differentiate consecutive tournaments */
+.day-cell.tournament-start {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-left: 3px solid rgba(255, 255, 255, 0.8);
+    /* Distinct start marker */
+    margin-left: 2px;
+    /* Add gap before start */
+    clip-path: inset(0 0 0 -10px);
+    /* Ensure border isn't clipped */
+}
+
+.day-cell.tournament-end {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-right: 3px solid rgba(255, 255, 255, 0.8);
+    /* Distinct end marker */
+    margin-right: 2px;
+    /* Add gap after end */
 }
 
 .event-indicator {
@@ -336,6 +363,22 @@
 
 .delete-mode-btn:hover {
     background: #e74c3c;
+    color: white;
+}
+
+.calc-norm-btn {
+    background: #333;
+    color: #f39c12;
+    border: 1px solid #f39c12;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.calc-norm-btn:hover {
+    background: #f39c12;
     color: white;
 }
 
