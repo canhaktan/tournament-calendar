@@ -71,6 +71,76 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
     // Removed handleRefreshRates as manual update is disabled
 
 
+    // User Stats (Norms & Rating)
+    const [userStats, setUserStats] = React.useState<{
+        gmNorms: number | string;
+        imNorms: number | string;
+        fideRating: number | string;
+    }>({
+        gmNorms: 0,
+        imNorms: 0,
+        fideRating: 0 // Default, will be updated from conditional logic or localStorage
+    });
+
+    const prevValueRef = React.useRef<number | string>(0);
+
+    React.useEffect(() => {
+        const saved = localStorage.getItem('userChessStats');
+        if (saved) {
+            try {
+                setUserStats(JSON.parse(saved));
+            } catch (e) {
+                console.error('Failed to parse user stats', e);
+            }
+        }
+    }, []);
+
+    const handleFocus = (val: number | string) => {
+        prevValueRef.current = val;
+    };
+
+    const handleStatChange = (key: keyof typeof userStats, value: string) => {
+        // Allow empty string for better editing experience
+        if (value === '') {
+            setUserStats(prev => ({ ...prev, [key]: '' }));
+            return;
+        }
+
+        const numVal = parseInt(value);
+        if (!isNaN(numVal)) {
+            setUserStats(prev => ({ ...prev, [key]: numVal }));
+        }
+    };
+
+    const handleBlur = (key: keyof typeof userStats) => {
+        let current = userStats[key];
+
+        // If empty, revert to previous valid value
+        if (current === '') {
+            setUserStats(prev => ({ ...prev, [key]: prevValueRef.current }));
+            return;
+        }
+
+        if (typeof current === 'string') {
+            current = parseInt(current) || 0;
+        }
+
+        // FIDE Rating Logic
+        if (key === 'fideRating') {
+            // Clamp between 1000 and 3000
+            if (current < 1000) current = 1000;
+            if (current > 3000) current = 3000;
+        } else {
+            // Norms shouldn't be negative just in case
+            if (current < 0) current = 0;
+        }
+
+        const newStats = { ...userStats, [key]: current };
+        setUserStats(newStats);
+        localStorage.setItem('userChessStats', JSON.stringify(newStats));
+    };
+
+
     const stats = useMemo(() => {
         // Apply Filter
         const filteredTournaments = filterMode === 'confirmed'
@@ -280,7 +350,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                             // Let's retrieve them.
                             const storedInfo = localStorage.getItem('exchangeRatesInfo');
                             const rates = storedInfo ? JSON.parse(storedInfo).rates : {};
-                            exportTournamentsToExcel(listToExport, displayCurrency, rates);
+                            exportTournamentsToExcel(listToExport, displayCurrency, rates, userStats);
                         }}
                         title="Export to Excel"
                     >
@@ -300,6 +370,43 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                     <div className="stat-card">
                         <span className="stat-value">{stats.countries.length}</span>
                         <span className="stat-label">Countries</span>
+                    </div>
+                </div>
+
+                {/* User Stats Grid (Norms & Rating) */}
+                <div className="stats-grid norms-grid" style={{ marginTop: '-1rem' }}>
+                    <div className="stat-card norm-card gm-norm">
+                        <input
+                            className="stat-value-input"
+                            value={userStats.gmNorms}
+                            onChange={(e) => handleStatChange('gmNorms', e.target.value)}
+                            onFocus={() => handleFocus(userStats.gmNorms)}
+                            onBlur={() => handleBlur('gmNorms')}
+                            type="number"
+                        />
+                        <span className="stat-label">GM Norms</span>
+                    </div>
+                    <div className="stat-card norm-card im-norm">
+                        <input
+                            className="stat-value-input"
+                            value={userStats.imNorms}
+                            onChange={(e) => handleStatChange('imNorms', e.target.value)}
+                            onFocus={() => handleFocus(userStats.imNorms)}
+                            onBlur={() => handleBlur('imNorms')}
+                            type="number"
+                        />
+                        <span className="stat-label">IM Norms</span>
+                    </div>
+                    <div className="stat-card norm-card fide-rating">
+                        <input
+                            className="stat-value-input"
+                            value={userStats.fideRating}
+                            onChange={(e) => handleStatChange('fideRating', e.target.value)}
+                            onFocus={() => handleFocus(userStats.fideRating)}
+                            onBlur={() => handleBlur('fideRating')}
+                            type="number"
+                        />
+                        <span className="stat-label">FIDE Rating</span>
                     </div>
                 </div>
 
