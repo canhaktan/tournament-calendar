@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import type { Tournament } from '../types';
+import { normalizeExpenses } from '../data/expenseCategories';
 
 export const exportTournamentsToExcel = async (
     tournaments: Tournament[],
@@ -111,7 +112,7 @@ function drawTournamentBlock(
 
     if (!useBasic && expenses.length > 0) {
         // DETAILED MODE
-        for (const exp of expenses) {
+        for (const exp of normalizeExpenses(expenses)) {
             const r = sheet.getRow(currentRow);
 
             // B: Title
