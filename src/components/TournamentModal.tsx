@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { addTournament, updateTournament } from '../services/tournamentService';
 import { formatDateDisplay } from '../config/locale';
 import { COUNTRIES, type CountryData } from '../data/countries';
+import { createDefaultExpenses, normalizeExpenses } from '../data/expenseCategories';
 import { convertCurrency, formatCurrency, type Currency } from '../services/currencyService';
 import type { Tournament, ExpenseItem } from '../types';
 import './TournamentModal.css';
@@ -76,36 +77,9 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
     // Default categories - Fixed list.
     // If expenses exist, merge them. If not, create defaults.
     useEffect(() => {
-        const defaultCategories = [
-            { id: '1', title: 'Plane tickets', currency: 'TRY' },
-            { id: '2', title: 'Entry fee', currency: 'EUR' },
-            { id: '3', title: 'Hotel/booking', currency: 'EUR' },
-            { id: '4', title: 'Food', currency: 'TRY' },
-            { id: '5', title: 'Transportation', currency: 'TRY' }
-        ];
-
-        if (expenses.length === 0) {
-            setExpenses(defaultCategories.map(c => ({ ...c, amount: 0 } as ExpenseItem)));
-        } else {
-            // Auto-update titles for legacy data
-            // We only update titles for items that MATCH the original IDs '1'..'5'.
-            // Extra plane tickets won't match '1'..'5' so they are safe from rename overrides if we were doing strict by-index mapping,
-            // but here we map by ID.
-            let hasChanges = false;
-            const updatedExpenses = expenses.map(item => {
-                const def = defaultCategories.find(d => d.id === item.id);
-                // Only update title if it's one of the default categories
-                if (def && item.title !== def.title) {
-                    hasChanges = true;
-                    return { ...item, title: def.title };
-                }
-                return item;
-            });
-
-            if (hasChanges) {
-                setExpenses(updatedExpenses);
-            }
-        }
+        setExpenses(prevExpenses => (
+            prevExpenses.length === 0 ? createDefaultExpenses() : normalizeExpenses(prevExpenses)
+        ));
     }, []);
 
     const handleCountryChange = (input: string) => {
@@ -132,7 +106,7 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
         ));
     };
 
-    const handleAddExpense = (afterId: string, templateTitle: string, templateCurrency: string) => {
+    const handleAddExpense = (afterId: string, templateCurrency: string) => {
         const newId = `ext-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         setExpenses(prev => {
             const index = prev.findIndex(e => e.id === afterId);
@@ -425,7 +399,7 @@ const TournamentModal: React.FC<TournamentModalProps> = ({ startDate, endDate, i
                                                 {isPrimaryPlaneTicket && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleAddExpense(expense.id, expense.title, expense.currency)}
+                                                        onClick={() => handleAddExpense(expense.id, expense.currency)}
                                                         className="expense-add-btn"
                                                         title="Add another ticket"
                                                         style={{
